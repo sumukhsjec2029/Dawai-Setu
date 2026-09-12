@@ -38,6 +38,8 @@ jobs:
           PORT: 4173
           BASE_PATH: /Dawai-Setu/
           VITE_DEMO_MODE: true
+      - name: Add SPA route fallback
+        run: cp artifacts/dawai-setu/dist/public/index.html artifacts/dawai-setu/dist/public/404.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
