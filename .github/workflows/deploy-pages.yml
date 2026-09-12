@@ -37,7 +37,7 @@ jobs:
           NODE_ENV: production
           PORT: 4173
           BASE_PATH: /Dawai-Setu/
-          VITE_API_URL: https://dawai-setu-api.onrender.com
+          VITE_DEMO_MODE: true
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
