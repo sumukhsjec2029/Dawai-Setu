@@ -150,6 +150,30 @@ function PageHeading({ eyebrow, title, description, action }: { eyebrow: string;
 function MapSignal({ facilities, alerts }: { facilities: Facility[]; alerts: Alert[] }) {
   const points = facilities.slice(0, 12);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  useEffect(() => {
+    const map = document.querySelector<HTMLElement>('.map-panel .map-body');
+    if (!map) return;
+    const controls = Array.from(map.querySelectorAll<HTMLButtonElement>('.map-controls button'));
+    let zoom = 1;
+    const refreshView = (view: string) => {
+      map.dataset.mapView = view;
+      map.classList.remove('map-nudge');
+      void map.offsetWidth;
+      map.classList.add('map-nudge');
+    };
+    const handlers = controls.map((button, index) => {
+      const handler = () => {
+        if (index === 0) zoom = Math.max(0.9, zoom - 0.1);
+        if (index === 1) zoom = Math.min(1.25, zoom + 0.1);
+        if (index === 2) zoom = 1;
+        map.style.setProperty('--map-zoom', String(zoom));
+        refreshView(index === 2 ? 'center' : zoom > 1 ? 'in' : 'out');
+      };
+      button.addEventListener('click', handler);
+      return { button, handler };
+    });
+    return () => handlers.forEach(({ button, handler }) => button.removeEventListener('click', handler));
+  }, []);
   const latitudes = points.map((f) => f.latitude);
   const longitudes = points.map((f) => f.longitude);
   const maxLat = Math.max(...latitudes, 13.4) + 0.025;

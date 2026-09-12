@@ -4,6 +4,11 @@ const facilities = [
   { id: 1, code: 'KMC-MAN', name: 'Kasturba Medical Centre', type: 'hospital', city: 'Manipal', district: 'Udupi', address: 'Tiger Circle, Manipal', latitude: 13.3525, longitude: 74.7927, contactName: 'Anitha Rao', contactPhone: '+91 820 292 1181', isActive: true, lastSyncAt: new Date().toISOString() },
   { id: 2, code: 'DH-UDP', name: 'District Hospital Udupi', type: 'hospital', city: 'Udupi', district: 'Udupi', address: 'Ajjarkad, Udupi', latitude: 13.3419, longitude: 74.7517, contactName: 'Ramesh Bhat', contactPhone: '+91 820 252 0555', isActive: true, lastSyncAt: new Date().toISOString() },
   { id: 3, code: 'WEN-MNG', name: 'Government Wenlock Hospital', type: 'hospital', city: 'Mangalore', district: 'Dakshina Kannada', address: 'Hampankatta, Mangalore', latitude: 12.8698, longitude: 74.8426, contactName: 'Shalini Shetty', contactPhone: '+91 824 242 1404', isActive: true, lastSyncAt: new Date().toISOString() },
+  { id: 4, code: 'KMC-UDU', name: 'Kasturba Medical Centre Udupi', type: 'hospital', city: 'Udupi', district: 'Udupi', address: 'Ambagilu, Udupi', latitude: 13.3406, longitude: 74.7421, contactName: 'Meera Pai', contactPhone: '+91 820 252 1188', isActive: true, lastSyncAt: new Date().toISOString() },
+  { id: 5, code: 'AJ-HOS', name: 'A.J. Institute of Medical Sciences', type: 'hospital', city: 'Mangalore', district: 'Dakshina Kannada', address: 'Kuntikana, Mangalore', latitude: 12.9141, longitude: 74.8560, contactName: 'Nikhil Shetty', contactPhone: '+91 824 222 5533', isActive: true, lastSyncAt: new Date().toISOString() },
+  { id: 6, code: 'CHC-KAR', name: 'Community Health Centre Karkala', type: 'clinic', city: 'Karkala', district: 'Udupi', address: 'Main Road, Karkala', latitude: 13.2143, longitude: 74.9963, contactName: 'Rekha Hegde', contactPhone: '+91 8258 230 455', isActive: true, lastSyncAt: new Date().toISOString() },
+  { id: 7, code: 'PHC-KAP', name: 'Primary Health Centre Kapu', type: 'clinic', city: 'Kapu', district: 'Udupi', address: 'Kapu Beach Road, Kapu', latitude: 13.2237, longitude: 74.7427, contactName: 'Suresh Kumar', contactPhone: '+91 820 252 4410', isActive: true, lastSyncAt: new Date().toISOString() },
+  { id: 8, code: 'COAST-DIST', name: 'Coastal Care Distribution Hub', type: 'distributor', city: 'Manipal', district: 'Udupi', address: 'Industrial Estate, Manipal', latitude: 13.3654, longitude: 74.7862, contactName: 'Farhan Ahmed', contactPhone: '+91 820 292 7711', isActive: true, lastSyncAt: new Date().toISOString() },
 ];
 
 const medicines = [
@@ -62,7 +67,12 @@ export function installDemoApi() {
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
     if (url.pathname === '/api/healthz') return json({ status: 'ok' });
     if (url.pathname === '/api/dashboard') return json({ facility: facilities[0], summary: { criticalAlerts: 2, watchAlerts: 2, inventoryLines: 3, pendingTransfers: 2, unreadNotifications: notifications.filter((item) => !item.isRead).length }, alerts, inventory: inventory.filter((item) => item.facilityId === 1), transfers: transfers.filter((item) => item.requesterFacilityId === 1 || item.supplierFacilityId === 1), notifications: notifications.filter((item) => item.facilityId === 1) });
-    if (url.pathname === '/api/facilities') return json(facilities);
+    if (url.pathname === '/api/facilities') {
+      const search = (query(url, 'query') || '').toLowerCase();
+      const city = query(url, 'city');
+      const type = query(url, 'type');
+      return json(facilities.filter((facility) => (!city || facility.city === city) && (!type || facility.type === type) && (!search || `${facility.name} ${facility.city} ${facility.code}`.toLowerCase().includes(search))));
+    }
     if (url.pathname === '/api/medicines') return json(medicines);
     if (url.pathname === '/api/inventory') return json(query(url, 'facilityId') ? inventory.filter((item) => item.facilityId === Number(query(url, 'facilityId'))) : inventory);
     if (url.pathname === '/api/alerts') return json(alerts);
