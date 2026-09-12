@@ -13,6 +13,16 @@ const medicines = [
   { id: 4, genericName: 'Azithromycin', brandName: 'Azithral', strength: '500 mg', form: 'tablet', unit: 'tablets', category: 'Antibiotic', reorderLevel: 120 },
 ];
 
+const bloodBank = [
+  { id: 'KMC-BB-A-POS', facilityName: 'Kasturba Medical Centre Blood Centre', facilityType: 'hospital', city: 'Manipal', address: 'Tiger Circle, Manipal', contactName: 'Anitha Rao', contactPhone: '+91 820 292 1181', bloodGroup: 'A+', units: 24, distanceKm: 0.8, status: 'surplus', lastUpdated: new Date(Date.now() - 8 * 60000).toISOString() },
+  { id: 'KMC-BB-O-POS', facilityName: 'Kasturba Medical Centre Blood Centre', facilityType: 'hospital', city: 'Manipal', address: 'Tiger Circle, Manipal', contactName: 'Anitha Rao', contactPhone: '+91 820 292 1181', bloodGroup: 'O+', units: 12, distanceKm: 0.8, status: 'available', lastUpdated: new Date(Date.now() - 10 * 60000).toISOString() },
+  { id: 'DH-UDP-BB-O-POS', facilityName: 'District Hospital Udupi Blood Bank', facilityType: 'hospital', city: 'Udupi', address: 'Ajjarkad, Udupi', contactName: 'Ramesh Bhat', contactPhone: '+91 820 252 0555', bloodGroup: 'O+', units: 30, distanceKm: 8.4, status: 'surplus', lastUpdated: new Date(Date.now() - 16 * 60000).toISOString() },
+  { id: 'DH-UDP-BB-A-NEG', facilityName: 'District Hospital Udupi Blood Bank', facilityType: 'hospital', city: 'Udupi', address: 'Ajjarkad, Udupi', contactName: 'Ramesh Bhat', contactPhone: '+91 820 252 0555', bloodGroup: 'A-', units: 6, distanceKm: 8.4, status: 'available', lastUpdated: new Date(Date.now() - 18 * 60000).toISOString() },
+  { id: 'WEN-MNG-BB-A-POS', facilityName: 'Government Wenlock Hospital Blood Centre', facilityType: 'hospital', city: 'Mangalore', address: 'Hampankatta, Mangalore', contactName: 'Shalini Shetty', contactPhone: '+91 824 242 1404', bloodGroup: 'A+', units: 40, distanceKm: 55.2, status: 'surplus', lastUpdated: new Date(Date.now() - 22 * 60000).toISOString() },
+  { id: 'WEN-MNG-BB-O-POS', facilityName: 'Government Wenlock Hospital Blood Centre', facilityType: 'hospital', city: 'Mangalore', address: 'Hampankatta, Mangalore', contactName: 'Shalini Shetty', contactPhone: '+91 824 242 1404', bloodGroup: 'O+', units: 22, distanceKm: 55.2, status: 'surplus', lastUpdated: new Date(Date.now() - 24 * 60000).toISOString() },
+  { id: 'MAN-LAB-AB-POS', facilityName: 'Manipal Laboratory Services', facilityType: 'lab', city: 'Manipal', address: 'Eshwar Nagar, Manipal', contactName: 'Kiran Nayak', contactPhone: '+91 820 292 6077', bloodGroup: 'AB+', units: 2, distanceKm: 2.1, status: 'low', lastUpdated: new Date(Date.now() - 31 * 60000).toISOString() },
+];
+
 const inventory = [
   { id: 1, facilityId: 1, facilityName: facilities[0].name, medicineId: 1, medicineName: 'Paracetamol', strength: '500 mg', form: 'tablet', unit: 'tablets', batchNumber: 'BTH001', quantityOnHand: 150, reservedQuantity: 50, availableQuantity: 100, expiryDate: '2026-12-15T00:00:00.000Z', daysToExpiry: 94, daysOfCover: 2.2, dailyConsumption: 45, risk: 'critical', lastCountedAt: new Date().toISOString() },
   { id: 2, facilityId: 1, facilityName: facilities[0].name, medicineId: 2, medicineName: 'Amoxicillin', strength: '500 mg', form: 'tablet', unit: 'tablets', batchNumber: 'BTH002', quantityOnHand: 80, reservedQuantity: 0, availableQuantity: 80, expiryDate: '2026-10-01T00:00:00.000Z', daysToExpiry: 19, daysOfCover: 6.7, dailyConsumption: 12, risk: 'high', lastCountedAt: new Date().toISOString() },
@@ -57,12 +67,40 @@ export function installDemoApi() {
     if (url.pathname === '/api/inventory') return json(query(url, 'facilityId') ? inventory.filter((item) => item.facilityId === Number(query(url, 'facilityId'))) : inventory);
     if (url.pathname === '/api/alerts') return json(alerts);
     if (url.pathname === '/api/transfer-requests' && method === 'GET') return json(transfers);
-    if (url.pathname === '/api/transfer-requests' && method === 'POST') { const created = { id: transfers.length + 1, ...body, status: 'pending', deliveryStatus: 'not_configured', createdAt: new Date().toISOString(), respondedAt: null }; transfers = [created, ...transfers]; return json(created, 201); }
+    if (url.pathname === '/api/transfer-requests' && method === 'POST') {
+      const medicine = medicines.find((item) => item.id === body.medicineId);
+      const supplier = facilities.find((item) => item.id === body.supplierFacilityId);
+      const requester = facilities.find((item) => item.id === body.requesterFacilityId);
+      const created = { id: transfers.length + 1, ...body, requesterFacilityName: requester?.name || 'Current facility', supplierFacilityName: supplier?.name || 'Partner facility', medicineName: medicine?.genericName || 'Medicine', medicineStrength: medicine?.strength || '', status: 'pending', deliveryStatus: 'not_configured', createdAt: new Date().toISOString(), respondedAt: null };
+      transfers = [created, ...transfers];
+      return json(created, 201);
+    }
     if (url.pathname.startsWith('/api/transfer-requests/') && method === 'PATCH') { const id = Number(url.pathname.split('/').pop()); transfers = transfers.map((item) => item.id === id ? { ...item, status: body.status, deliveryStatus: body.status === 'accepted' ? 'awaiting_dispatch' : 'not_configured', respondedAt: new Date().toISOString() } : item); return json(transfers.find((item) => item.id === id)); }
     if (url.pathname === '/api/notifications' && method === 'GET') return json(notifications.filter((item) => item.facilityId === 1 && (query(url, 'unreadOnly') !== 'true' || !item.isRead)));
     if (url.pathname.startsWith('/api/notifications/') && method === 'PATCH') { const id = Number(url.pathname.split('/')[3]); notifications = notifications.map((item) => item.id === id ? { ...item, isRead: true } : item); return json(notifications.find((item) => item.id === id)); }
-    if (url.pathname === '/api/nearby-suppliers') return json(inventory.filter((item) => item.facilityId !== 1 && item.availableQuantity > 0).map((item) => ({ facility: facilities.find((facility) => facility.id === item.facilityId), medicine: medicines.find((medicine) => medicine.id === item.medicineId), availableQuantity: item.availableQuantity, surplusQuantity: Math.max(0, item.availableQuantity - 500), nearestExpiryDate: item.expiryDate, daysToExpiry: item.daysToExpiry, distanceKm: item.facilityId === 2 ? 7.2 : 43.8, estimatedMinutes: item.facilityId === 2 ? 28 : 126, matchScore: item.facilityId === 2 ? 0.92 : 0.61, recommendation: item.facilityId === 2 ? 'recommended' : 'good' })));
-    if (url.pathname === '/api/blood-bank') return json([]);
+    if (url.pathname === '/api/nearby-suppliers') {
+      const medicineId = Number(query(url, 'medicineId'));
+      return json(inventory
+        .filter((item) => item.facilityId !== 1 && item.medicineId === medicineId && item.availableQuantity > 0)
+        .map((item) => ({
+          facility: facilities.find((facility) => facility.id === item.facilityId),
+          medicine: medicines.find((medicine) => medicine.id === item.medicineId),
+          availableQuantity: item.availableQuantity,
+          surplusQuantity: Math.max(0, item.availableQuantity - 500),
+          nearestExpiryDate: item.expiryDate,
+          daysToExpiry: item.daysToExpiry,
+          distanceKm: item.facilityId === 2 ? 7.2 : 43.8,
+          estimatedMinutes: item.facilityId === 2 ? 28 : 126,
+          matchScore: item.facilityId === 2 ? 92 : 61,
+          recommendation: item.facilityId === 2 ? 'recommended' : 'good',
+        })));
+    }
+    if (url.pathname === '/api/blood-bank') {
+      const group = query(url, 'group');
+      const city = query(url, 'city');
+      const search = (query(url, 'query') || '').toLowerCase();
+      return json(bloodBank.filter((record) => (!group || record.bloodGroup === group) && (!city || record.city === city) && (!search || `${record.facilityName} ${record.city} ${record.bloodGroup}`.toLowerCase().includes(search))));
+    }
     if (url.pathname === '/api/delivery/status') return json({ provider: 'swiggy_genie', status: 'not_configured', message: 'Demo mode: delivery handoff is queued after transfer acceptance.' });
     return json({ error: 'Demo endpoint not found' }, 404);
   };

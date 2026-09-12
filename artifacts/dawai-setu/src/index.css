@@ -53,7 +53,7 @@
 }
 * { box-sizing: border-box; border-color: var(--line); }
 html { min-width: 320px; background: var(--ink-950); }
-body { margin: 0; min-height: 100dvh; background: var(--ink-950); color: var(--ink-800); font-family: var(--app-font-sans); -webkit-font-smoothing: antialiased; }
+body { margin: 0; min-height: 100dvh; overflow-x: hidden; background: var(--ink-950); color: var(--ink-800); font-family: var(--app-font-sans); -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
@@ -342,8 +342,9 @@ select { height: 34px; padding: 0 9px; border: 1px solid var(--line); border-rad
 .type-pill { color: var(--blue); background: var(--blue-soft); text-transform: capitalize; } .status-badge.active { color: var(--green); background: var(--green-soft); } .status-badge.inactive { color: var(--red); background: var(--red-soft); }
 .info-strip { display: flex; align-items: center; gap: 9px; margin-top: 13px; padding: 12px 14px; border: 1px solid #2b3b4e; border-radius: 6px; color: var(--ink-500); background: #111f30; font-size: 9px; } .info-strip svg { flex: 0 0 auto; color: var(--amber); width: 15px; } .info-strip b { color: var(--ink-800); }
 
-.redistribute-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(290px, .65fr); gap: 14px; align-items: start; }
-.search-hero { padding: 22px; position: relative; overflow: visible; color: #ecf9fa; background: #10283a; border-color: #21445a; }
+.redistribute-layout { display: grid; min-width: 0; grid-template-columns: minmax(0, 1.35fr) minmax(290px, .65fr); gap: 14px; align-items: start; }
+.redistribute-layout > * { min-width: 0; }
+.search-hero { padding: 22px; position: relative; overflow: hidden; color: #ecf9fa; background: #10283a; border-color: #21445a; }
 .search-hero::after { content: ''; position: absolute; right: -90px; top: -125px; width: 245px; height: 245px; border: 32px solid rgba(46,212,232,.08); border-radius: 50%; pointer-events: none; }
 .search-hero h2 { margin: 0; position: relative; z-index: 1; font-size: 19px; letter-spacing: -.03em; } .search-hero p { margin: 7px 0 16px; position: relative; z-index: 1; color: #87a8b9; font-size: 10px; }
 .medicine-search { height: 41px; position: relative; z-index: 1; display: flex; align-items: center; gap: 9px; padding: 0 12px; border: 1px solid #365b70; border-radius: 6px; color: var(--blue); background: #18364c; }

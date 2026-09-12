@@ -84,12 +84,20 @@ function Shell({ children }: { children: ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountOrigin, setAccountOrigin] = useState<'top' | 'sidebar'>('top');
   const [compactView, setCompactView] = useState(false);
   const [language, setLanguage] = useState('English');
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const { data: notifications } = useListNotifications({ facilityId: FACILITY_ID, unreadOnly: true }, { query: { refetchInterval: POLL, queryKey: getListNotificationsQueryKey({ facilityId: FACILITY_ID, unreadOnly: true }) } });
   const markRead = useMarkNotificationRead();
+  useEffect(() => {
+    setMobileOpen(false);
+    setSettingsOpen(false);
+    setHelpOpen(false);
+    setAccountOpen(false);
+    setNotificationsOpen(false);
+  }, [location]);
   const toggleAccount = (origin: 'top' | 'sidebar') => {
     setAccountOrigin(origin);
     setAccountOpen((open) => !open);
@@ -128,7 +136,7 @@ function Shell({ children }: { children: ReactNode }) {
     <div className="main-shell">
       <header className="topbar">
         <div className="topbar-context"><span className="context-dot" /><div><b>Udupi · Manipal · Mangalore</b><small>Regional supply network · live monitoring</small></div></div>
-         <div className="top-actions"><div className="notification-wrap"><button className="icon-button" type="button" aria-label="Open notifications" data-testid="button-notifications"><Bell size={16} />{notifications?.length ? <i className="notification-count">{notifications.length}</i> : null}</button>{notifications?.length ? <div className="notification-popover"><div className="popover-title">Unread activity <Link href="/transfers">View inbox</Link></div>{notifications.slice(0, 3).map((n) => <button key={n.id} className="notification-item" onClick={() => markRead.mutate({ id: n.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListNotificationsQueryKey({ facilityId: FACILITY_ID, unreadOnly: true }) }) })} type="button"><span className="notification-dot" /><span><b>{n.title}</b><small>{n.body}</small></span></button>)}</div> : null}</div><div className="account-wrap"><button className="avatar-button" type="button" onClick={() => toggleAccount('top')} aria-label="Open demo manager menu" aria-expanded={accountOpen && accountOrigin === 'top'} data-testid="button-top-account"><div className="avatar">DM</div></button>{accountOpen && accountOrigin === 'top' && <AccountMenu language={language} onLanguageChange={setLanguage} onLogout={handleLogout} onClose={() => setAccountOpen(false)} placement="top" />}</div></div>
+         <div className="top-actions"><div className="notification-wrap"><button className="icon-button" type="button" aria-label="Open notifications" aria-expanded={notificationsOpen} onClick={() => { setNotificationsOpen((open) => !open); setAccountOpen(false); }} data-testid="button-notifications"><Bell size={16} />{notifications?.length ? <i className="notification-count">{notifications.length}</i> : null}</button>{notificationsOpen && notifications?.length ? <div className="notification-popover"><div className="popover-title">Unread activity <Link href="/transfers" onClick={() => setNotificationsOpen(false)}>View inbox</Link></div>{notifications.slice(0, 3).map((n) => <button key={n.id} className="notification-item" onClick={() => markRead.mutate({ id: n.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: getListNotificationsQueryKey({ facilityId: FACILITY_ID, unreadOnly: true }) }) })} type="button"><span className="notification-dot" /><span><b>{n.title}</b><small>{n.body}</small></span></button>)}</div> : null}</div><div className="account-wrap"><button className="avatar-button" type="button" onClick={() => toggleAccount('top')} aria-label="Open demo manager menu" aria-expanded={accountOpen && accountOrigin === 'top'} data-testid="button-top-account"><div className="avatar">DM</div></button>{accountOpen && accountOrigin === 'top' && <AccountMenu language={language} onLanguageChange={setLanguage} onLogout={handleLogout} onClose={() => setAccountOpen(false)} placement="top" />}</div></div>
       </header>
        {sessionMessage && <div className="session-message" role="status"><ShieldCheck /><span>{sessionMessage}</span><button type="button" onClick={() => setSessionMessage(null)} aria-label="Dismiss session message"><X /></button></div>}
        {children}
